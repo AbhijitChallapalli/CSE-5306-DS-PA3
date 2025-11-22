@@ -1,0 +1,57 @@
+services:
+  storage: # Storage
+    build: ../alarm_dist_sys/storage
+    container_name: storage_MS_locust
+    command: python storage.py
+    ports:
+      - "50051:50051"
+    volumes:
+      - ../alarm_dist_sys/storage/saved_alarm.json:/app/saved_alarm.json
+
+  scheduler: # Scheduler
+    build: ../alarm_dist_sys/scheduler
+    container_name: scheduler_MS_locust
+    command: python scheduler.py
+    depends_on:
+      - storage
+      - accounts
+    ports:
+      - "50052:50052"
+
+  notification: # Notification
+    build: ../alarm_dist_sys/notification
+    container_name: notification_MS_locust
+    command: python notification.py
+    depends_on:
+      - scheduler
+      - storage
+
+  api_gateway: # API Gateway / Web Dashboard
+    build: ../alarm_dist_sys/api_gateway
+    container_name: api_gateway_MS_locust
+    command: python -m uvicorn api_gateway:app --host 0.0.0.0 --port 8080
+    depends_on:
+      - storage
+      - scheduler
+      - notification
+      - accounts
+    ports:
+      - "8080:8080"
+
+  accounts:
+    build: ../alarm_dist_sys/accounts
+    container_name: accounts_MS_locust
+    command: python accounts.py
+    ports:
+      - "50053:50053"
+    volumes:
+      - ../alarm_dist_sys/accounts/saved_users.json:/app/saved_users.json
+
+  locust_app:
+    build: .
+    image: locust_app:latest
+    container_name: locust_app_MS
+    ports:
+      - 8089:8089
+    depends_on:
+      - api_gateway

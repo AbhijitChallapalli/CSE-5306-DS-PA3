@@ -1,0 +1,63 @@
+
+services:
+  storage: # Storage
+    build: ./alarm_dist_sys/storage
+    container_name: storage_MS
+    command: python -u storage.py
+    ports:
+      - "50051:50051"
+    volumes:
+      - ./alarm_dist_sys/storage/saved_alarm.json:/app/saved_alarm.json
+
+  scheduler: # Scheduler
+    build: ./alarm_dist_sys/scheduler
+    container_name: scheduler_MS
+    #command: python scheduler.py
+    depends_on:
+      - storage
+      - accounts
+    ports:
+      - "50052:50052"
+      - "60052:60052"   # VotePhase (Python)
+      - "61052:61052"   # DecisionPhase (Node.js)
+
+  notification: # Notification
+    build: ./alarm_dist_sys/notification
+    container_name: notification_MS
+    command: python notification.py
+    depends_on:
+      - scheduler
+      - storage
+
+  api_gateway: # API Gateway / Web Dashboard
+    build: ./alarm_dist_sys/api_gateway
+    container_name: api_gateway_MS
+    command: python -m uvicorn api_gateway:app --host 0.0.0.0 --port 8080
+    depends_on:
+      - storage
+      - scheduler
+      - notification
+      - accounts
+    ports:
+      - "8080:8080"
+
+  accounts:
+    build: ./alarm_dist_sys/accounts
+    container_name: accounts_MS
+    #command: python accounts.py
+    ports:
+      - "50053:50053"
+      - "60053:60053"   # VotePhase (Python)
+      - "61053:61053"   # DecisionPhase (Node.js)
+    volumes:
+      - ./alarm_dist_sys/accounts/saved_users.json:/app/saved_users.json
+
+  coordinator:
+    build: ./alarm_dist_sys/coordinator
+    container_name: coordinator_MS
+    command: python -u coordinator.py
+    depends_on:
+      - scheduler
+      - accounts
+    ports:
+      - "60050:60050"
