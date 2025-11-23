@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Alarm Dashboard</title>
+  <style>
+    body { font-family: Arial; background: #d6f6ff; padding: 2em; }
+    h1 { color: #333; }
+    form { margin-bottom: 1.5em; }
+    input[type=text], input[type=time] { padding: 0.4em; margin-right: 0.5em; }
+    input[type=submit], button { padding: 0.4em 0.8em; background: #0066cc; color: white; border: none; cursor: pointer; }
+    input[type=submit]:hover, button:hover { background: #004c99; }
+    .notif { background: #f5f5f5; padding: 0.5em; margin-top: 0.5em; border: 1px solid #ffeeba; border-radius: 4px; }
+    table { border-collapse: collapse; width: 100%; background: white; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+  </style>
+</head>
+
+<body>
+  <h1>Distributed Alarm System</h1>
+
+  <form id="addAlarmForm">
+    <input type="hidden" name="username" value="{{ user_id }}">
+    <input type="text" name="message" placeholder="Alarm title" required>
+    <input type="time" name="hhmm" required>
+    <button type="submit">Add Alarm</button>
+  </form>
+
+  <h2>Scheduled Alarms</h2>
+  <table>
+    <tr><th>ID</th><th>Title</th><th>Time</th><th>Actions</th></tr>
+    <tbody id="alarm-table"></tbody>
+  </table>
+
+  <h2>Notifications</h2>
+  <div id="notifications"></div>
+
+  <button type="button" style="margin-top: 0.83em" onclick="logout()">Logout</button>
+
+  <!-- Edit Alarm Modal -->
+  <div id="editModal" style="
+    display:none;
+    position:fixed;
+    top:0; left:0; right:0; bottom:0;
+    background:rgba(0,0,0,0.5);
+    justify-content:center;
+    align-items:center;"
+  >
+    <div style="background:white; padding:1.5em; border-radius:8px; width:300px;">
+      <h3>Edit Alarm</h3>
+      <form id="editAlarmForm">
+      <input type="hidden" name="id">
+      <label>Title:</label><br>
+      <input type="text" name="message" required><br><br>
+      <label>Time:</label><br>
+      <input type="time" name="hhmm" required><br><br>
+      <button type="submit">Save</button>
+      <button type="button" onclick="closeModal()">Cancel</button>
+      </form>
+    </div>
+  </div>
+</body>
+
+<script>
+  const alarmTable = document.getElementById("alarm-table");
+  const form = document.getElementById("addAlarmForm");
+  const modal = document.getElementById("editModal");
+  const editForm = document.getElementById("editAlarmForm");
+  let fetching = false;
+
+  function logout() {
+    window.location.href = "/users/logout";
+  }
+
+  function openModal(alarm) {
+    modal.style.display = "flex";
+    editForm.elements["id"].value = alarm.id;
+    editForm.elements["message"].value = alarm.message;
+
+    // Extract "HH:MM" from datetime string
+    const dt = new Date(alarm.time+"Z");
+    const options = { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "America/Chicago" };
+    const [hh, mm] = new Intl.DateTimeFormat("en-US", options)
+                        .formatToParts(dt)
+                        .filter(p => p.type === "hour" || p.type === "minute")
+                        .map(p => p.value);
+
+    editForm.elements["hhmm"].value = `${hh}:${mm}`;
+  }
+
+  function closeModal() {
+    modal.style.display = "none";
+  }
+
+  function ConvertISOToHHMM(timestamp) {
+    return new Intl.DateTimeFormat("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+      timeZone: "America/Chicago"
+    }).format(new Date(timestamp+"Z")); // timestamp is in UTC
+  }
+
+  function ConvertHHMMToISO(hhmm) {
+    const [hours, minutes] = hhmm.split(":").map(Number);
+    const now = new Date();
+    const scheduled = new Date(now);
+    scheduled.setHours(hours, minutes, 0, 0);
+
+    // If the scheduled time is in the past, move it to next day
+    if (scheduled <= now) {
+      scheduled.setDate(scheduled.getDate() + 1);
+    }
+
+    return scheduled.toISOString();
+  }
+
+  async function fetchAlarms() {
+    try {
+      const response = await fetch("/alarms/pending");
+      const alarms = await response.json();
+
+      // Clear table
+      alarmTable.innerHTML = "";
+
+      // Populate table
+      alarms.forEach(alarm => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${alarm.id}</td>
+          <td>${alarm.message}</td>
+          <td>${ConvertISOToHHMM(alarm.time)}</td>
+          <td>
+            <button onclick="editAlarm(${alarm.id})">Edit</button>
+            <button onclick="deleteAlarm(${alarm.id})">Delete</button>
+          </td>
+        `;
+        alarmTable.appendChild(row);
+      });
+    } catch (err) {
+      console.error("Failed to fetch alarms:", err);
+    }
+  }
+
+  async function fetchNotifications() {
+    try {
+      const response = await fetch("/notifications");
+      const notifications = await response.json();
+      const notifDiv = document.getElementById("notifications");
+      notifDiv.innerHTML = "";
+
+      notifications.forEach(notif => {
+
+        const messageElem = document.createElement("div");
+        messageElem.className = "notif";
+        messageElem.innerHTML = `
+          ${notif.message}
+          <button style="font-size:0.8em; margin-left:10px;">Dismiss</button>
+        `;
+        const button = messageElem.querySelector("button");
+        button.addEventListener("click", () => deleteNotification(notif.id));
+        notifDiv.appendChild(messageElem);
+      })
+    } catch (err) {
+      console.error("Failed to fetch notifications:", err);
+    }
+  }
+
+  async function fetchData() {
+    if (fetching)
+      return;
+
+    fetching = true;
+    await fetchAlarms();
+    await fetchNotifications();
+    fetching = false;
+  }
+
+  async function editAlarm(id) {
+    try {
+      const res = await fetch(`/alarms/${id}`);
+      const alarm = await res.json();
+      openModal(alarm);
+    } catch (err) {
+      console.error("Failed to load alarm:", err);
+    }
+  }
+
+  async function deleteAlarm(id) {
+    await fetch(`/alarms/${id}`, { method: "DELETE" });
+    fetchData();
+  }
+
+  async function deleteNotification(id) {
+    await fetch(`/notifications/${id}`, { method: "DELETE" });
+    fetchData();
+  }
+  
+  // Initial fetch
+  fetchData();
+
+  setInterval(fetchData, 1000);
+
+  // Add alarm
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault(); // prevent page reload
+
+    const message = form.elements["message"].value;
+    const hhmm = form.elements["hhmm"].value;
+
+    const payload = {
+      message,
+      time: ConvertHHMMToISO(hhmm)  // convert to full datetime
+    };
+
+    try {
+      const response = await fetch("/alarms", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      if (response.ok) {
+        form.reset();       // clear the form
+        fetchData();
+      } else {
+        console.error("Failed to add alarm");
+      }
+    } catch (err) {
+      console.error("Error adding alarm:", err);
+    }
+  });
+
+  // Edit alarm
+  editForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const id = editForm.elements["id"].value;
+    const message = editForm.elements["message"].value;
+    const hhmm = editForm.elements["hhmm"].value;
+
+    const payload = {
+      message,
+      time: ConvertHHMMToISO(hhmm)
+    };
+
+    try {
+      const res = await fetch(`/alarms/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      if (res.ok) {
+        closeModal();
+        fetchData();
+      } else {
+        console.error("Failed to update alarm");
+      }
+    } catch (err) {
+      console.error("Error updating alarm:", err);
+    }
+  });
+</script>
+</html>
