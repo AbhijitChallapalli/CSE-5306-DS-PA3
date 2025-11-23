@@ -64,6 +64,7 @@ echo "  python3 test_client.py       # Interactive client"
 echo "  python3 test_client.py --auto  # Automated test"
 echo ""
 echo "Stop cluster:"
+
 echo "  docker-compose down"
 echo ""
 echo "Check cluster status:"

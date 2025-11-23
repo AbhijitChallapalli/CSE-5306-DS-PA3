@@ -2,7 +2,6 @@
 
 **Course:** CSE 5306 - Distributed Systems
 **Project 3:** Consensus Algorithms (Raft)
-**Implementation:** Q3 (Leader Election) and Q4 (Log Replication)
 
 ## Table of Contents
 - [Overview](#overview)
@@ -78,13 +77,6 @@ cd raft_implementation
 ```bash
 # Install Python dependencies
 pip install -r requirements.txt
-
-# Generate Python gRPC code from proto file
-bash generate_proto.sh
-
-# OR manually:
-python3 -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. raft.proto
-```
 
 ### Step 3: Build Docker Images
 ```bash
@@ -167,9 +159,6 @@ docker-compose up -d
 # Wait 10 seconds for cluster to stabilize
 sleep 10
 
-# Generate gRPC code locally (if not done)
-python3 -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. raft.proto
-
 # Run test suite
 python3 test_cases.py
 ```
@@ -180,12 +169,6 @@ python3 test_cases.py
 - Test 3: Submits multiple operations and verifies commitment
 - Test 4: Pauses leader to trigger election with potential split vote
 - Test 5: Pauses a follower, submits operations, then rejoins node
-
-**Screenshot Capture:**
-Take screenshots during test execution for your report:
-- Leader election messages
-- RPC call logs (RequestVote, AppendEntries)
-- Test case results (PASS/FAIL)
 
 ### Interactive Test Client
 
@@ -459,45 +442,13 @@ This implementation was developed using the following resources:
    - Flexible for different operation types
    - Easy to extend with new operations
 
-### Known Limitations
 
-1. **Persistence:**
-   - State is not persisted to disk
-   - Node restart loses all state
-   - Production Raft would persist `current_term`, `voted_for`, and `log`
-
-2. **Snapshot/Compaction:**
-   - No log compaction implemented
-   - Log grows unbounded
-   - Production systems would snapshot state periodically
-
-3. **Configuration Changes:**
-   - Cluster size is fixed at 5 nodes
-   - No dynamic membership changes
-   - Raft supports this via joint consensus
-
-4. **Optimizations:**
-   - No batch AppendEntries
-   - No pipeline optimization
-   - Production implementations would optimize RPC usage
-
----
 
 ## Contributors
 
-[Your Name and Student ID]
-[Partner Name and Student ID (if applicable)]
 
 **Work Distribution:**
-- [Name 1]: Q3 Implementation (Leader Election)
-- [Name 2]: Q4 Implementation (Log Replication)
-- Both: Q5 Testing, Documentation, Docker configuration
 
----
-
-## GitHub Repository
-
-[Include your GitHub repository link here]
 
 **Repository Structure:**
 ```
@@ -509,45 +460,3 @@ your-repo/
 ```
 
 ---
-
-## How to Submit
-
-1. **Test everything:**
-   ```bash
-   docker-compose up -d
-   python3 test_cases.py
-   ```
-
-2. **Capture screenshots** of:
-   - Leader election process
-   - RPC message logs
-   - All 5 test cases running
-   - Docker containers status
-
-3. **Create report** including:
-   - Student names and IDs
-   - Work distribution
-   - Screenshots of test cases
-   - Explanation of implementation
-   - Any challenges faced
-
-4. **Zip all files:**
-   ```bash
-   zip -r raft_implementation.zip raft_implementation/
-   ```
-
-5. **Upload to Canvas:**
-   - Source code (zip file)
-   - Report (PDF)
-   - README (this file)
-
----
-
-## License
-
-This implementation is for educational purposes as part of CSE 5306 - Distributed Systems.
-
----
-
-**Last Updated:** [Current Date]
-**Version:** 1.0

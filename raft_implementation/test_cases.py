@@ -456,11 +456,6 @@ class RaftTester:
 
         print(f"\n  Total: {passed}/{total} tests passed")
         print("#"*70)
-        print("\nNote: Take screenshots of the output for your report!")
-        print("      Check Docker logs for detailed RPC messages:")
-        print("      docker logs raft_node1")
-        print("      docker logs raft_node2")
-        print("      ... etc.")
 
 
 if __name__ == "__main__":
