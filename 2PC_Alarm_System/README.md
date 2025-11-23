@@ -7,11 +7,108 @@ The coordinator uses 2PC to ensure that either **both** participants (`scheduler
 
 ---
 
+## How to Run
+
+Clone the repository using this command:
+
+```bash
+git clone https://github.com/AbhijitChallapalli/CSE-5306-DS-PA3.git
+```
+
+Change directories:
+
+```bash
+cd CSE-5306-DS-PA3
+
+cd 2PC_Alarm_System
+
+cd microservice_based
+```
+
+From this directory:
+
+```bash
+docker compose build
+```
+
+Run the services:
+
+```bash
+docker compose up
+```
+
+# Accessing the Web UI
+
+1. Open a browser and go to:
+
+   ```text
+   http://localhost:8080
+   ```
+
+2. Login:
+
+   - Valid users are defined in `alarm_dist_sys/accounts/saved_users.json`.
+   - Or Use this to signup [{"username": "admin", "password": "12345"}]
+   - Or signup.
+
+3. After login:
+
+   - `/dashboard` shows Alarms + Notifications panels.
+   - “Add Alarm” form submits to `/add` which triggers 2PC via the coordinator.
+   - Deleting alarms goes directly through storage (not via 2PC).
+
+4. In the project folder:
+
+```bash
+docker compose up
+```
+
+You’ll see logs interleaved from:
+
+- `api_gateway_MS`
+- `coordinator_MS`
+- `scheduler_MS`
+- `accounts_MS`
+- `storage_MS`
+- `notification_MS`
+
+This is why the order looks “mixed” – they’re all running **concurrently**.
+
+# Per-service logs
+
+In another terminal:
+
+```bash
+# Coordinator logs
+docker compose logs -f coordinator
+
+# Scheduler logs
+docker compose logs -f scheduler
+
+# Accounts logs
+docker compose logs -f accounts
+
+# Storage logs
+docker compose logs -f storage
+
+# API gateway logs
+docker compose logs -f api_gateway
+```
+
+Use `Ctrl + C` to stop
+
+Stop the docker containers
+
+```bash
+docker compose down
+```
+
 ## Architecture Overview
 
 ### Microservices
 
 - **API Gateway (`api_gateway`)**
+
   - Tech: Python, FastAPI, Uvicorn
   - Port: `8080`
   - Responsibilities:
@@ -21,6 +118,7 @@ The coordinator uses 2PC to ensure that either **both** participants (`scheduler
       - `coordinator` (initiate 2PC for AddAlarm)
 
 - **Coordinator (`coordinator`)**
+
   - Tech: Python, gRPC
   - Port: `60050`
   - RPC:
@@ -31,6 +129,7 @@ The coordinator uses 2PC to ensure that either **both** participants (`scheduler
     - Phase 2 (Decision): sends global decision to `DecideOnAddAlarm` on both participants
 
 - **Scheduler**
+
   - Tech:
     - `scheduler_vote.py` (Python gRPC server – VotePhase) – port `60052`
     - `scheduler_decision.js` (Node.js gRPC server – DecisionPhase) – port `61052`
@@ -41,6 +140,7 @@ The coordinator uses 2PC to ensure that either **both** participants (`scheduler
     - On **abort**, drops prepared data
 
 - **Accounts**
+
   - Tech:
     - `accounts_vote.py` (Python gRPC server – VotePhase) – port `60053`
     - `accounts_decision.js` (Node.js gRPC server – DecisionPhase) – port `61053`
@@ -49,6 +149,7 @@ The coordinator uses 2PC to ensure that either **both** participants (`scheduler
     - **DecisionPhase**: logically commits or aborts the alarm
 
 - **Storage (`storage`)**
+
   - Tech: Python gRPC server
   - Port: `50051`
   - File: `storage.py`
@@ -91,6 +192,7 @@ The coordinator uses 2PC to ensure that either **both** participants (`scheduler
    Phase Voting of Node coordinator sends RPC VoteOnAddAlarm to Phase Voting of Node accounts
    ```
 3. Each participant’s VotePhase:
+
    - `scheduler_vote.py`:
      - For demo: if `title` starts with `"abort"`, it **votes ABORT**:
        ```python
@@ -123,6 +225,7 @@ The coordinator uses 2PC to ensure that either **both** participants (`scheduler
    Phase Decision of Node coordinator sends RPC DecideOnAddAlarm to Phase Decision of Node accounts
    ```
 3. Scheduler DecisionPhase (`scheduler_decision.js`):
+
    - If decision is COMMIT:
      - Calls underlying `Scheduler.ScheduleAlarm` (gRPC to local scheduler).
      - On success, replies:
@@ -136,6 +239,7 @@ The coordinator uses 2PC to ensure that either **both** participants (`scheduler
        ```
 
 4. Accounts DecisionPhase (`accounts_decision.js`):
+
    - If COMMIT:
      ```text
      [Accounts DecisionPhase] COMMIT: logically committing alarm for tx_id=...
@@ -146,6 +250,7 @@ The coordinator uses 2PC to ensure that either **both** participants (`scheduler
      ```
 
 5. Coordinator logs final acks and decision:
+
    ```text
    [Coordinator] Decision ack from scheduler: success=True, msg=Scheduler committed alarm
    [Coordinator] Decision ack from accounts: success=True, msg=Accounts committed alarm
@@ -153,6 +258,7 @@ The coordinator uses 2PC to ensure that either **both** participants (`scheduler
    ```
 
    For abort scenario:
+
    ```text
    [Coordinator] Decision ack from scheduler: success=True, msg=Scheduler aborted alarm (global abort)
    [Coordinator] Decision ack from accounts: success=True, msg=Accounts logically aborted alarm (global abort)
@@ -183,93 +289,6 @@ The coordinator uses 2PC to ensure that either **both** participants (`scheduler
 
 ---
 
-## How to Run
-
-From the root of the microservice project (where `docker-compose.yml` lives):
-
-```bash
-docker compose up --build
-```
-
-- `--build` ensures Docker rebuilds images with your latest code.
-- Logs from all services will stream in a single view.
-
-To run in the background:
-
-```bash
-docker compose up --build -d
-```
-
-To stop:
-
-```bash
-docker compose down
-```
-
----
-
-## Accessing the Web UI
-
-1. Open a browser and go to:
-
-   ```text
-   http://localhost:8080
-   ```
-
-2. Login:
-   - Valid users are defined in `alarm_dist_sys/accounts/saved_users.json`.
-   - Use any username/password that exists in that file (e.g., often `"admin"`).
-
-3. After login:
-   - `/dashboard` shows Alarms + Notifications panels.
-   - “Add Alarm” form submits to `/add` which triggers 2PC via the coordinator.
-   - Deleting alarms goes directly through storage (not via 2PC).
-
----
-
-## Viewing Logs
-
-### All services together
-
-In the project folder:
-
-```bash
-docker compose up   # or `docker compose logs -f`
-```
-
-You’ll see logs interleaved from:
-- `api_gateway_MS`
-- `coordinator_MS`
-- `scheduler_MS`
-- `accounts_MS`
-- `storage_MS`
-- `notification_MS`
-
-This is why the order looks “mixed” – they’re all running **concurrently**.
-
-### Per-service logs
-
-In another terminal:
-
-```bash
-# Coordinator logs
-docker compose logs -f coordinator
-
-# Scheduler logs
-docker compose logs -f scheduler
-
-# Accounts logs
-docker compose logs -f accounts
-
-# Storage logs
-docker compose logs -f storage
-
-# API gateway logs
-docker compose logs -f api_gateway
-```
-
-Use `Ctrl + C` to stop `-f` (follow) mode.
-
 ### What to Look For
 
 #### 1. Normal Global Commit (title not starting with "abort")
@@ -280,6 +299,7 @@ Expected flow:
 2. Logs:
 
    - **Coordinator**:
+
      ```text
      [Coordinator] Starting 2PC AddAlarm, tx_id=..., user=admin, title=test
      Phase Voting of Node coordinator sends RPC VoteOnAddAlarm to Phase Voting of Node scheduler
@@ -295,6 +315,7 @@ Expected flow:
      ```
 
    - **Scheduler DecisionPhase (Node)**:
+
      ```text
      Phase Decision of Node scheduler sends RPC AddPreparedAlarm to Phase Decision of Node scheduler
      Phase Decision of Node scheduler sends RPC DecideOnAddAlarm to Phase Decision of Node scheduler
@@ -302,6 +323,7 @@ Expected flow:
      ```
 
    - **Accounts DecisionPhase (Node)**:
+
      ```text
      Phase Decision of Node accounts sends RPC AddPreparedAlarm to Phase Decision of Node accounts
      Phase Decision of Node accounts sends RPC DecideOnAddAlarm to Phase Decision of Node accounts
@@ -309,6 +331,7 @@ Expected flow:
      ```
 
    - **Storage**:
+
      ```text
      Alarm Added in Storage
      ```
@@ -326,6 +349,7 @@ Expected flow:
 2. Logs:
 
    - **Coordinator**:
+
      ```text
      [Coordinator] Starting 2PC AddAlarm, tx_id=..., user=admin, title=abort test
      Phase Voting of Node coordinator sends RPC VoteOnAddAlarm to Phase Voting of Node scheduler
@@ -339,11 +363,13 @@ Expected flow:
      ```
 
    - **Scheduler DecisionPhase**:
+
      ```text
      [Scheduler DecisionPhase] ABORT: dropping prepared alarm for tx_id=...
      ```
 
    - **Accounts DecisionPhase**:
+
      ```text
      [Accounts DecisionPhase] ABORT: logically aborting alarm for tx_id=...
      ```
