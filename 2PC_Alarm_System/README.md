@@ -74,6 +74,14 @@ You’ll see logs interleaved from:
 
 This is why the order looks “mixed” – they’re all running **concurrently**.
 
+# 2PC Fuctionality
+
+- **Global commit**:
+- Add alarm with title `"test" or any other name` → watch 2PC logs and see the alarm appear on the dashboard.
+- **Global abort**:
+- Add alarm with title starting `"abort"` → watch that scheduler votes abort, coordinator decides GLOBAL_ABORT, accounts/scheduler abort logically, and no alarm is stored.
+- Use `docker compose logs -f coordinator` + `scheduler` + `accounts` during the demo to clearly watch the **Voting** and **Decision** phases.
+
 # Per-service logs
 
 In another terminal:
@@ -391,13 +399,3 @@ Expected flow:
     - ./alarm_dist_sys/storage/saved_alarm.json:/app/saved_alarm.json
   ```
 - This means alarms survive container restarts as long as the JSON file remains.
-
----
-
-## Notes for Demos / Assignments
-
-- Show **normal commit**:
-  - Add alarm with title `"test"` → watch 2PC logs and see the alarm appear on the dashboard.
-- Show **global abort**:
-  - Add alarm with title starting `"abort"` → show that scheduler votes abort, coordinator decides GLOBAL_ABORT, accounts/scheduler abort logically, and no alarm is stored.
-- Use `docker compose logs -f coordinator` + `scheduler` + `accounts` during the demo to clearly highlight **Voting** and **Decision** phases and tie them back to your assignment requirements.
