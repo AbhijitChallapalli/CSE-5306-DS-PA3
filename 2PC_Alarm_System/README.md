@@ -3,7 +3,7 @@
 This project implements a **Two-Phase Commit (2PC)** protocol for the **“Add Alarm”** functionality in a distributed alarm system.
 
 The system is split into multiple microservices (Python + Node.js) that communicate via **gRPC** and are orchestrated with **Docker Compose**.  
-The coordinator uses 2PC to ensure that either **both** participants (`scheduler`, `accounts`) commit an alarm, or **both** abort it.
+The coordinator uses 2PC to ensure that **both** participants (`scheduler`, `accounts`) commit an alarm, or **both** abort it.
 
 ---
 
