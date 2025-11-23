@@ -9,8 +9,8 @@ dist/
 build/
 
 # Generated gRPC files
-raft_pb2.py
-raft_pb2_grpc.py
+# raft_pb2.py
+# raft_pb2_grpc.py
 
 # Virtual environment
 venv/
