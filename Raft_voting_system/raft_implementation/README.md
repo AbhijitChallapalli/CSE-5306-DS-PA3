@@ -70,6 +70,7 @@ protobuf==4.25.1
 
 ### Step 1: Navigate to Project Directory
 ```bash
+cd Raft_voting_system
 cd raft_implementation
 ```
 
