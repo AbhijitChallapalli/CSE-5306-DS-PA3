@@ -1,10 +1,3 @@
-
-
-# Notification node/service client only
-# will handle creating the notifications ?
-# not sure what this will look like with the api tho
-
-
 import grpc
 from google.protobuf import empty_pb2
 

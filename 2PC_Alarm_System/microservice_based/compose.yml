@@ -3,7 +3,6 @@ services:
   storage: # Storage
     build: ./alarm_dist_sys/storage
     container_name: storage_MS
-    command: python -u storage.py
     ports:
       - "50051:50051"
     volumes:
@@ -12,7 +11,6 @@ services:
   scheduler: # Scheduler
     build: ./alarm_dist_sys/scheduler
     container_name: scheduler_MS
-    #command: python scheduler.py
     depends_on:
       - storage
       - accounts
@@ -44,7 +42,6 @@ services:
   accounts:
     build: ./alarm_dist_sys/accounts
     container_name: accounts_MS
-    #command: python accounts.py
     ports:
       - "50053:50053"
       - "60053:60053"   # VotePhase (Python)

@@ -1,16 +1,3 @@
-# # syntax=docker/dockerfile:1
-
-# FROM python:3.12
-
-# WORKDIR /app
-# COPY scheduler.py .
-# COPY alarm_pb2.py alarm_pb2_grpc.py .
-
-# RUN pip install --no-cache-dir grpcio grpcio-tools protobuf
-
-# CMD ["python", "scheduler.py"]
-
-# microservice_based/alarm_dist_sys/scheduler/Dockerfile
 FROM python:3.12
 
 WORKDIR /app
