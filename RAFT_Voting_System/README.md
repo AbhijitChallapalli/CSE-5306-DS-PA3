@@ -4,15 +4,19 @@
 
 This is the **integration of Raft consensus algorithm** with the **microservice_rpc polling system** (selected from another group's Project 2 implementation), satisfying the requirements of Project 3, Q3-Q5.
 
+## `GitHub link: https://github.com/AbhijitChallapalli/CSE-5306-DS-PA3`
+
 ### What Was Integrated
 
 **Original System** (from microservice_rpc/):
+
 - gRPC-based polling system
 - 3 services: PollService, VoteService, ResultService
 - PostgreSQL database with primary-replica replication
 - 2 servers (primary + backup)
 
 **Our Addition** (Raft consensus):
+
 - Replaced PostgreSQL with Raft-replicated in-memory state
 - Expanded from 2 servers to 5 Raft nodes
 - Added leader election (Q3)
@@ -22,6 +26,7 @@ This is the **integration of Raft consensus algorithm** with the **microservice_
 ## 🏗️ Architecture
 
 ### Before (Their System)
+
 ```
 Client → Load Balancer
            ↓
@@ -30,6 +35,7 @@ Client → Load Balancer
 ```
 
 ### After (Raft Integration)
+
 ```
 Client → Any Raft Node (1-5)
            ↓
@@ -49,6 +55,7 @@ Client → Any Raft Node (1-5)
 We kept their gRPC service definitions (`polling.proto`) but changed the implementation:
 
 **Their Original Code** (primary_server.py):
+
 ```python
 def CreatePoll(self, request, context):
     conn = get_db_connection()  # PostgreSQL
@@ -58,6 +65,7 @@ def CreatePoll(self, request, context):
 ```
 
 **Our Integration** (raft_polling_node.py):
+
 ```python
 def CreatePoll(self, request, context):
     # Check if leader
@@ -106,10 +114,12 @@ def _execute_operation(self, operation: str, data: dict):
 Each Raft node provides **both** Raft RPCs and their original Polling RPCs:
 
 **Raft RPCs (our addition):**
+
 - `RequestVote` - Leader election (Q3)
 - `AppendEntries` - Log replication + heartbeat (Q3, Q4)
 
 **Polling RPCs (their original API):**
+
 - `CreatePoll` - Create new poll
 - `ListPolls` - List all polls
 - `ClosePoll` - Close a poll
@@ -118,36 +128,37 @@ Each Raft node provides **both** Raft RPCs and their original Polling RPCs:
 
 ## 📊 Assignment Requirements Mapping
 
-| Requirement | Implementation | Location |
-|------------|----------------|----------|
-| **Q3: Leader Election** | ✅ Implemented | `raft_polling_node.py:89-169` |
-| - Heartbeat timeout (1s) | ✅ 1.0 seconds | Line 66 |
-| - Election timeout (1.5-3s) | ✅ Random [1.5, 3.0] | Line 67 |
-| - Follower state | ✅ All start as followers | Line 54 |
-| - RequestVote RPC | ✅ Implemented | Line 444-476 |
-| - Majority voting | ✅ 3/5 nodes required | Line 126 |
-| - RPC logging format | ✅ "Node X sends/runs RPC" | Lines 134, 447 |
-| **Q4: Log Replication** | ✅ Implemented | `raft_polling_node.py:171-281` |
-| - Maintain operation log | ✅ self.log | Line 49 |
-| - Leader receives request | ✅ CreatePoll, CastVote, etc. | Lines 504-753 |
-| - Append <o,t,k+1> to log | ✅ With Q4 logging | Lines 563-570 |
-| - Send log + commit index | ✅ AppendEntries RPC | Lines 204-208 |
-| - Followers copy log | ✅ With Q4 logging | Lines 495-497 |
-| - Followers execute up to c | ✅ _apply_committed_entries | Lines 268-281 |
-| - Leader commits on majority | ✅ _update_commit_index | Lines 247-265 |
-| - Forward to leader | ✅ Returns leader_id | Lines 521-525 |
-| - RPC logging format | ✅ "Node X sends/runs RPC" | Lines 212, 484 |
-| **Q5: Test Cases** | ✅ 5+ test cases | See Test Cases section |
-| - Docker containerization | ✅ 5 nodes | `docker-compose.yml` |
-| - gRPC communication | ✅ Both Raft + Polling | Throughout |
-| **Integration Requirement** | ✅ Raft on selected implementation | Entire file |
-| - Uses their polling.proto | ✅ Imported | Line 23 |
-| - Uses their services | ✅ PollService, VoteService, ResultService | Lines 34-36, 498-753 |
-| - Replaces their backend | ✅ In-memory state vs PostgreSQL | Lines 66-73 |
+| Requirement                  | Implementation                             | Location                       |
+| ---------------------------- | ------------------------------------------ | ------------------------------ |
+| **Q3: Leader Election**      | ✅ Implemented                             | `raft_polling_node.py:89-169`  |
+| - Heartbeat timeout (1s)     | ✅ 1.0 seconds                             | Line 66                        |
+| - Election timeout (1.5-3s)  | ✅ Random [1.5, 3.0]                       | Line 67                        |
+| - Follower state             | ✅ All start as followers                  | Line 54                        |
+| - RequestVote RPC            | ✅ Implemented                             | Line 444-476                   |
+| - Majority voting            | ✅ 3/5 nodes required                      | Line 126                       |
+| - RPC logging format         | ✅ "Node X sends/runs RPC"                 | Lines 134, 447                 |
+| **Q4: Log Replication**      | ✅ Implemented                             | `raft_polling_node.py:171-281` |
+| - Maintain operation log     | ✅ self.log                                | Line 49                        |
+| - Leader receives request    | ✅ CreatePoll, CastVote, etc.              | Lines 504-753                  |
+| - Append <o,t,k+1> to log    | ✅ With Q4 logging                         | Lines 563-570                  |
+| - Send log + commit index    | ✅ AppendEntries RPC                       | Lines 204-208                  |
+| - Followers copy log         | ✅ With Q4 logging                         | Lines 495-497                  |
+| - Followers execute up to c  | ✅ \_apply_committed_entries               | Lines 268-281                  |
+| - Leader commits on majority | ✅ \_update_commit_index                   | Lines 247-265                  |
+| - Forward to leader          | ✅ Returns leader_id                       | Lines 521-525                  |
+| - RPC logging format         | ✅ "Node X sends/runs RPC"                 | Lines 212, 484                 |
+| **Q5: Test Cases**           | ✅ 5+ test cases                           | See Test Cases section         |
+| - Docker containerization    | ✅ 5 nodes                                 | `docker-compose.yml`           |
+| - gRPC communication         | ✅ Both Raft + Polling                     | Throughout                     |
+| **Integration Requirement**  | ✅ Raft on selected implementation         | Entire file                    |
+| - Uses their polling.proto   | ✅ Imported                                | Line 23                        |
+| - Uses their services        | ✅ PollService, VoteService, ResultService | Lines 34-36, 498-753           |
+| - Replaces their backend     | ✅ In-memory state vs PostgreSQL           | Lines 66-73                    |
 
 ## 🚀 Quick Start
 
 ### Prerequisites
+
 ```bash
 # Install dependencies
 pip3 install grpcio grpcio-tools protobuf
@@ -161,6 +172,7 @@ docker-compose up -d
 ```
 
 This starts 5 Raft nodes:
+
 - `raft_polling_node1` on port 50051
 - `raft_polling_node2` on port 50052
 - `raft_polling_node3` on port 50053
@@ -175,6 +187,7 @@ docker logs -f raft_polling_node1
 ```
 
 Look for:
+
 ```
 [Node X] WON ELECTION for term 1!
 [Node X] State: CANDIDATE -> LEADER
@@ -187,6 +200,7 @@ python3 test_integrated_client.py
 ```
 
 This will:
+
 1. Create a poll (via Raft consensus)
 2. Cast 5 votes (replicated across all nodes)
 3. Get results (from any node)
@@ -196,24 +210,29 @@ This will:
 ## 🧪 Test Cases (Q5)
 
 ### Test 1: Normal Leader Election
+
 **Description:** Start 5 nodes, one becomes leader
 **Expected:** Exactly one leader elected within 3 seconds
 **Run:** `docker-compose up -d && docker logs raft_polling_node1 | grep "ELECTION"`
 
 ### Test 2: Create Poll with Consensus
+
 **Description:** Client creates a poll, replicated to all nodes
 **Expected:** All 5 nodes have identical poll data
 **Run:** Included in `test_integrated_client.py` (Test 1)
 
 ### Test 3: Cast Vote with Replication
+
 **Description:** Multiple votes cast, replicated via Raft
 **Expected:** Vote counts identical on all nodes
 **Run:** Included in `test_integrated_client.py` (Test 2)
 
 ### Test 4: Leader Failure and Re-election
+
 **Description:** Kill leader, new leader elected
 **Expected:** New leader elected, operations continue
 **Run:**
+
 ```bash
 # Identify leader
 docker logs raft_polling_node1 | grep "LEADER"
@@ -226,9 +245,11 @@ docker logs -f raft_polling_node2
 ```
 
 ### Test 5: Node Rejoining After Partition
+
 **Description:** Stopped node restarts and catches up
 **Expected:** Rejoining node receives missing log entries
 **Run:**
+
 ```bash
 # Stop node3
 docker stop raft_polling_node3
@@ -244,14 +265,17 @@ docker logs raft_polling_node3 | grep "Applied entry"
 ```
 
 ### Test 6: Read from Any Node
+
 **Description:** Get results from follower nodes
 **Expected:** All nodes return same results
 **Run:** Included in `test_integrated_client.py` (Test 3)
 
 ### Test 7: Concurrent Votes
+
 **Description:** Multiple clients vote simultaneously
 **Expected:** All votes counted, no duplicates
 **Run:**
+
 ```bash
 # Run multiple clients in parallel
 for i in {1..10}; do
@@ -294,6 +318,7 @@ docker logs raft_polling_node2 2>&1 | grep "runs RPC RequestVote"
 ```
 
 Expected output:
+
 ```
 [Node 2] sends RPC RequestVote to Node 1
 [Node 1] runs RPC RequestVote called by Node 2
@@ -334,19 +359,20 @@ EOF
 
 ## 🆚 Comparison: Their System vs Our Integration
 
-| Aspect | Their microservice_rpc | Our Raft Integration |
-|--------|------------------------|----------------------|
-| **Nodes** | 2 (primary + backup) | 5 (all equal via Raft) |
-| **Consensus** | None (primary-replica) | Raft (leader election + log replication) |
-| **Storage** | PostgreSQL (persistent) | In-memory (Raft-replicated) |
-| **Fault Tolerance** | Failover on primary crash | Automatic re-election, tolerates 2 failures |
-| **Consistency** | Eventual (replication lag) | Strong (linearizable via Raft) |
-| **API** | gRPC (PollService, etc.) | Same gRPC API (unchanged) |
-| **Load Balancer** | Nginx (round-robin) | Leader discovery (clients find leader) |
+| Aspect              | Their microservice_rpc     | Our Raft Integration                        |
+| ------------------- | -------------------------- | ------------------------------------------- |
+| **Nodes**           | 2 (primary + backup)       | 5 (all equal via Raft)                      |
+| **Consensus**       | None (primary-replica)     | Raft (leader election + log replication)    |
+| **Storage**         | PostgreSQL (persistent)    | In-memory (Raft-replicated)                 |
+| **Fault Tolerance** | Failover on primary crash  | Automatic re-election, tolerates 2 failures |
+| **Consistency**     | Eventual (replication lag) | Strong (linearizable via Raft)              |
+| **API**             | gRPC (PollService, etc.)   | Same gRPC API (unchanged)                   |
+| **Load Balancer**   | Nginx (round-robin)        | Leader discovery (clients find leader)      |
 
 ## 🎯 What We Added vs What We Kept
 
 ### ✅ Kept from Their System
+
 - `polling.proto` - All service definitions
 - Service names: `PollService`, `VoteService`, `ResultService`
 - RPC names: `CreatePoll`, `CastVote`, `GetPollResults`, etc.
@@ -354,6 +380,7 @@ EOF
 - Business logic: Poll creation, vote counting, duplicate detection
 
 ### ✨ Added by Us
+
 - `raft.proto` - Raft service definitions
 - Raft state: `current_term`, `voted_for`, `log`, etc.
 - Leader election algorithm
@@ -365,11 +392,13 @@ EOF
 ## 📝 Notes for Grading
 
 1. **This satisfies "implement Raft on one of the three selected implementations"**
+
    - Selected implementation: `microservice_rpc` polling system
    - Integration approach: Replaced database backend with Raft consensus
    - Original API preserved: All their gRPC endpoints work unchanged
 
 2. **All Q3 requirements met:**
+
    - ✅ Heartbeat timeout: 1 second (line 66)
    - ✅ Election timeout: Random [1.5, 3] seconds (line 67)
    - ✅ Follower state initialization (line 54)
@@ -378,6 +407,7 @@ EOF
    - ✅ RPC logging format (throughout)
 
 3. **All Q4 requirements met:**
+
    - ✅ Maintain log with committed + pending (line 49)
    - ✅ Leader receives request (lines 504-753)
    - ✅ Append <o,t,k+1> with logging (lines 563-570)
@@ -394,6 +424,7 @@ EOF
 ## 🛠️ Troubleshooting
 
 ### No leader elected
+
 ```bash
 # Restart cluster
 docker-compose down
@@ -402,6 +433,7 @@ sleep 10
 ```
 
 ### Connection refused
+
 ```bash
 # Check all containers running
 docker ps | grep raft_polling
@@ -410,6 +442,7 @@ docker ps | grep raft_polling
 ```
 
 ### Import errors
+
 ```bash
 # Regenerate proto files if needed
 cd ../raft_implementation
