@@ -1,7 +1,0 @@
-fastapi
-uvicorn[standard]
-sqlalchemy
-pydantic
-requests
-passlib[bcrypt]
-argon2-cffi
