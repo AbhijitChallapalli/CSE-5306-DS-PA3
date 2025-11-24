@@ -1,6 +1,6 @@
 # CSE 5306 - Distributed Systems - Programming Assignment 3
 
-## Consensus Algorithms: 2PC and Raft Implementation
+## Making Your Systems Fault Tolerant via 2PC & Raft
 
 This repository contains implementations of two fundamental distributed consensus algorithms:
 - **Two-Phase Commit (2PC)** - Applied to a distributed alarm system
