@@ -45,6 +45,16 @@ This will start a 5-node Raft cluster (Node 1 through Node 5).
 
 In a separate terminal, run the comprehensive test suite:
 
+Change directories:
+
+```bash
+cd CSE-5306-DS-PA3
+
+cd RAFT_Voting_System
+
+cd raft_integration
+```
+
 ```bash
 python3 test_raft_scenarios.py
 ```
