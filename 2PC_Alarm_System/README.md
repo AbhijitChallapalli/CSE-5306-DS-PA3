@@ -86,6 +86,16 @@ This is why the order looks “mixed” – they’re all running **concurrently
 
 In another terminal:
 
+Change directories:
+
+```bash
+cd CSE-5306-DS-PA3
+
+cd RAFT_Voting_System
+
+cd raft_integration
+```
+
 ```bash
 # Coordinator logs
 docker compose logs -f coordinator
