@@ -4,7 +4,7 @@
 
 This is the **integration of Raft consensus algorithm** with the **microservice_rpc polling system** (selected from another group's Project 2 implementation), satisfying the requirements of Project 3, Q3-Q5.
 
-## `GitHub link: https://github.com/AbhijitChallapalli/CSE-5306-DS-PA3`
+## `GitHub link': https://github.com/AbhijitChallapalli/CSE-5306-DS-PA3
 
 ### What Was Integrated
 
