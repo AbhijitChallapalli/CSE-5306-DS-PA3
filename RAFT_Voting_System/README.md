@@ -65,7 +65,56 @@ The test script will automatically:
 - Verify consensus, consistency, and replication
 
 ---
+---
 
+## Viewing Logs
+
+### Per-Node Logs
+
+In separate terminals: for each terminal change directories
+
+Change directories:
+
+```bash
+cd CSE-5306-DS-PA3
+
+cd RAFT_Voting_System
+
+cd raft_integration
+```
+
+```bash
+# Node 1 logs
+docker logs -f raft_polling_node1
+
+# Node 2 logs
+docker logs -f raft_polling_node2
+
+# Node 3 logs
+docker logs -f raft_polling_node3
+
+# Node 4 logs
+docker logs -f raft_polling_node4
+
+# Node 5 logs
+docker logs -f raft_polling_node5
+```
+
+### All Logs Combined
+
+```bash
+docker compose logs -f
+```
+
+Use `Ctrl + C` to stop following logs.
+
+### Stop the Cluster
+
+```bash
+docker compose down
+```
+
+---
 ## Architecture Overview
 
 ### Node Structure
@@ -191,46 +240,7 @@ The `test_raft_scenarios.py` script validates the following Raft behaviors:
 - **Validates**: Write operations are processed by leader; followers forward requests
 - **Expected**: Poll is successfully closed via leader
 
----
 
-## Viewing Logs
-
-### Per-Node Logs
-
-In separate terminals:
-
-```bash
-# Node 1 logs
-docker logs -f raft_polling_node1
-
-# Node 2 logs
-docker logs -f raft_polling_node2
-
-# Node 3 logs
-docker logs -f raft_polling_node3
-
-# Node 4 logs
-docker logs -f raft_polling_node4
-
-# Node 5 logs
-docker logs -f raft_polling_node5
-```
-
-### All Logs Combined
-
-```bash
-docker compose logs -f
-```
-
-Use `Ctrl + C` to stop following logs.
-
-### Stop the Cluster
-
-```bash
-docker compose down
-```
-
----
 
 ## What to Look For
 
