@@ -367,7 +367,14 @@ raft_integration/
 - **Application**: Distributed polling/voting system
 
 ---
-
+## Contributions
+- Srinivasa Sai Abhijit Challapalli - 1002059486 - Implemented the entire 2PC Algorithm, along with README and report (Q1, Q2)
+- Namburi Chaitanya Krishna - 1002232417 - Implemented RAFT Algorithm along with the test cases, along with README and report (Q3, Q4, Q5)
+---
+## References:
+- Distributed Alarm Systems GitHub - https://github.com/hoaihdinh/Distributed-Alarm-System/
+- Distributed Voting System GitHub - https://github.com/CSE-5306-004-DISTRIBUTED-SYSTEMS/Project2
+---
 ## External Resources Referenced
 
 - Raft Consensus Algorithm: https://raft.github.io/
