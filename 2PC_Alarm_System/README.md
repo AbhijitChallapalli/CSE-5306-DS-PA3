@@ -400,7 +400,7 @@ Expected flow:
   ```
 - This means alarms survive container restarts as long as the JSON file remains.
 
-## Unusual / Important Notes for the TA
+## Important Notes for the TA
 
 - 2PC is only applied to the Add Alarm operation. Delete/Listing follow the original single-service paths.
 
