@@ -84,7 +84,7 @@ This is why the order looks “mixed” – they’re all running **concurrently
 
 # Per-service logs
 
-In another terminal:
+In another terminal: (fpr each new terminal change directories)
 
 Change directories:
 
