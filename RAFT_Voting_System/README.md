@@ -376,15 +376,3 @@ raft_integration/
 
 ---
 
-## Team Information
-
-**Students**: [Add your names and IDs here]
-
-**Work Distribution**:
-- [Student 1]: Leader election implementation, Docker configuration
-- [Student 2]: Log replication, test scenarios
-- [Add more as needed]
-
----
-
-**For detailed assignment requirements, see the project specification document.**
