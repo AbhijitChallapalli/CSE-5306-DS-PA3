@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  node1:
+    build: .
+    container_name: raft_polling_node1
+    command: ["python", "raft_polling_node.py", "1"]
+    ports:
+      - "50051:50051"
+    networks:
+      - raft-polling-net
+
+  node2:
+    build: .
+    container_name: raft_polling_node2
+    command: ["python", "raft_polling_node.py", "2"]
+    ports:
+      - "50052:50052"
+    networks:
+      - raft-polling-net
+
+  node3:
+    build: .
+    container_name: raft_polling_node3
+    command: ["python", "raft_polling_node.py", "3"]
+    ports:
+      - "50053:50053"
+    networks:
+      - raft-polling-net
+
+  node4:
+    build: .
+    container_name: raft_polling_node4
+    command: ["python", "raft_polling_node.py", "4"]
+    ports:
+      - "50054:50054"
+    networks:
+      - raft-polling-net
+
+  node5:
+    build: .
+    container_name: raft_polling_node5
+    command: ["python", "raft_polling_node.py", "5"]
+    ports:
+      - "50055:50055"
+    networks:
+      - raft-polling-net
+
+networks:
+  raft-polling-net:
+    driver: bridge
