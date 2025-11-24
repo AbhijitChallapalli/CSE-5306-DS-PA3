@@ -416,4 +416,4 @@ Expected flow:
 
 ## References:
 - Distributed Alarm Systems GitHub - https://github.com/hoaihdinh/Distributed-Alarm-System/
-- Distributed Voting System GitHub - https://github.com/CSE-5306-004-DISTRIBUTED-SYSTEMS/
+- Distributed Voting System GitHub - https://github.com/CSE-5306-004-DISTRIBUTED-SYSTEMS/Project2
